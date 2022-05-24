@@ -60,3 +60,121 @@ AddEventHandler('esx:playerLoaded', function(source)
 	end)
 end)
 
+RegisterServerEvent("io_skillsystem:addStamina")
+AddEventHandler("io_skillsystem:addStamina", function(source, amount)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    TriggerClientEvent('esx:showNotification', source, 'Tu resistencia ha subido ~g~' .. round(amount, 2) .. '%!')
+
+    MySQL.Async.fetchAll('SELECT * FROM `habilidades` WHERE `identifier` = @identifier', {['@identifier'] = xPlayer.identifier}, function(skillInfo)
+        MySQL.Async.execute('UPDATE `habilidades` SET `stamina` = @stamina WHERE `identifier` = @identifier',
+            {
+            ['@stamina'] = (skillInfo[1].stamina + amount),
+            ['@identifier'] = xPlayer.identifier
+            }, function ()
+            
+            updatePlayerInfo(source)
+        end)
+	end)
+end)
+
+RegisterServerEvent("io_skillsystem:addAgricultura")
+AddEventHandler('io_skillsystem:addAgricultura', function(source, amount)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    TriggerClientEvent('esx:showNotification', source, 'Tu habilidad de agricultor ha subido ~g~' .. round(amount, 2) .. '%!')
+
+    MySQL.Async.fetchAll('SELECT * FROM `habilidades` WHERE `identifier` = @identifier', {['@identifier'] = xPlayer.identifier}, function(skillInfo)
+		MySQL.Async.execute('UPDATE `habilidades` SET `agricultura` = @agricultura WHERE `identifier` = @identifier',
+			{
+			['@agricultura'] = (skillInfo[1].agricultura + amount),
+			['@identifier'] = xPlayer.identifier
+		    }, function ()
+            
+            updatePlayerInfo(source)
+        end)
+	end)
+end)
+
+RegisterServerEvent("io_skillsystem:addLooting")
+AddEventHandler('io_skillsystem:addLooting', function(source, amount)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    TriggerClientEvent('esx:showNotification', source, 'Tu habilidad de looteo ha subido ~g~' .. round(amount, 2) .. '%!')
+
+    MySQL.Async.fetchAll('SELECT * FROM `habilidades` WHERE `identifier` = @identifier', {['@identifier'] = xPlayer.identifier}, function(skillInfo)
+		MySQL.Async.execute('UPDATE `habilidades` SET `looting` = @looting WHERE `identifier` = @identifier',
+			{
+			['@looting'] = (skillInfo[1].looting + amount),
+			['@identifier'] = xPlayer.identifier
+		    }, function ()
+
+            updatePlayerInfo(source)
+        end)
+	end)
+end)
+
+RegisterServerEvent("io_skillsystem:addMineria")
+AddEventHandler('io_skillsystem:addMineria', function(source, amount)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    TriggerClientEvent('esx:showNotification', source, 'Tu habilidad de mineria ha subido ~g~' .. round(amount, 2) .. '%!')
+
+    MySQL.Async.fetchAll('SELECT * FROM `habilidades` WHERE `identifier` = @identifier', {['@identifier'] = xPlayer.identifier}, function(skillInfo)
+		MySQL.Async.execute('UPDATE `habilidades` SET `mineria` = @mineria WHERE `identifier` = @identifier',
+			{
+			['@mineria'] = (skillInfo[1].mineria + amount),
+			['@identifier'] = xPlayer.identifier
+		    }, function ()
+
+            updatePlayerInfo(source)
+        end)
+	end)
+end)
+
+RegisterServerEvent("io_skillsystem:addQuimica")
+AddEventHandler('io_skillsystem:addQuimica', function(source, amount)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    TriggerClientEvent('esx:showNotification', source, 'Tu habilidad de quimica ha subido ~g~' .. round(amount, 2) .. '%!')
+
+    MySQL.Async.fetchAll('SELECT * FROM `habilidades` WHERE `identifier` = @identifier', {['@identifier'] = xPlayer.identifier}, function(skillInfo)
+		MySQL.Async.execute('UPDATE `habilidades` SET `quimica` = @quimica WHERE `identifier` = @identifier',
+			{
+			['@quimica'] = (skillInfo[1].quimica + amount),
+			['@identifier'] = xPlayer.identifier
+		    }, function ()
+
+            updatePlayerInfo(source)
+        end)
+	end)
+end)
+
+RegisterServerEvent("io_skillsystem:addMedicina")
+AddEventHandler('io_skillsystem:addMedicina', function(source, amount)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    TriggerClientEvent('esx:showNotification', source, 'Tu habilidad de medico ha subido ~g~' .. round(amount, 2) .. '%!')
+
+    MySQL.Async.fetchAll('SELECT * FROM `habilidades` WHERE `identifier` = @identifier', {['@identifier'] = xPlayer.identifier}, function(skillInfo)
+		MySQL.Async.execute('UPDATE `habilidades` SET `medicina` = @medicina WHERE `identifier` = @identifier',
+			{
+			['@medicina'] = (skillInfo[1].medicina + amount),
+			['@identifier'] = xPlayer.identifier
+		    }, function ()
+
+            updatePlayerInfo(source)
+        end)
+	end)
+end)
+
+RegisterServerEvent("io_skillsystem:addDisparo")
+AddEventHandler("io_skillsystem:addDisparo", function(source, amount)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	TriggerClientEvent('esx:showNotification', source, 'Tu punteria ha subido ~g~' .. round(amount, 2) .. '%!')
+    
+	MySQL.Async.fetchAll('SELECT * FROM `habilidades` WHERE `identifier` = @identifier', {['@identifier'] = xPlayer.identifier}, function(skillInfo)
+		MySQL.Async.execute('UPDATE `habilidades` SET `disparo` = @disparo WHERE `identifier` = @identifier',
+			{
+			['@disparo'] = (skillInfo[1].disparo + amount),
+			['@identifier'] = xPlayer.identifier
+			}, function()
+            
+			updatePlayerInfo(source)
+		end)
+	end)
+end)
