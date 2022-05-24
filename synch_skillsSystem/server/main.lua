@@ -178,3 +178,40 @@ AddEventHandler("io_skillsystem:addDisparo", function(source, amount)
 		end)
 	end)
 end)
+
+ESX.RegisterServerCallback('io_skillsystem:getSkills', function(source, cb)
+    local xPlayer = ESX.GetPlayerFromId(source)
+  
+    MySQL.Async.fetchAll('SELECT * FROM `habilidades` WHERE `identifier` = @identifier', {['@identifier'] = xPlayer.identifier}, function(skillInfo)
+        cb(
+            skillInfo[1].stamina,
+            skillInfo[1].agricultura, 
+            skillInfo[1].looting, 
+            skillInfo[1].mineria, 
+            skillInfo[1].quimica,
+            skillInfo[1].medicina,
+            skillInfo[1].disparo
+        )
+    end)
+end)
+
+ESX.RegisterServerCallback('io_skillsystem:getBooks', function(source, cb)
+    local xPlayer = ESX.GetPlayerFromId(source)
+
+    MySQL.Async.fetchAll('SELECT * FROM `habilidades_book` WHERE `identifier` = @identifier', {['@identifier'] = xPlayer.identifier}, function(skillInfo)
+        cb(
+            skillInfo[1].stamina,
+            skillInfo[1].agricultura, 
+            skillInfo[1].looting, 
+            skillInfo[1].mineria, 
+            skillInfo[1].quimica,
+            skillInfo[1].medicina,
+            skillInfo[1].disparo
+        )
+    end)
+end)
+
+-- IMPLEMENTAR USO DE LIBROS DE HABILIDADES
+
+-- Habra libros que al leerlos suba un nivel segun la rama de la que sea el libro
+-- Se pueda usar el libro solo una vez por jugador o mas? 
