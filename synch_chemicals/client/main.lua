@@ -2,6 +2,7 @@ ESX = nil
 local skillsquimicos = 0
 local chemicals = {}
 local textOutput = {}
+local fallo = false
 
 function createBlip()
     for k,v in pairs(labBlips) do
@@ -19,6 +20,10 @@ end
 function addArrayPure(element, symbol, value) 
 	text = '~w~[' .. symbol .. ': ' .. value .. '%~w~] '
 
+	if value > 100 then
+		fallo = true
+	end
+
     for i=1, #textOutput do
         if string.sub(textOutput[i], 5, 6) == string.sub(text, 5, 6) then
             textOutput[i] = text
@@ -27,10 +32,11 @@ function addArrayPure(element, symbol, value)
 end
 
 function placeChemicalLab(propLab)
+	chemicals = {}
 	local playerPed = PlayerPedId()
 	local object = options[propLab]
 
-    if IsPedInAnyVehicle(playerPed) then
+    	if IsPedInAnyVehicle(playerPed) then
 		exports.pNotify:SendNotification({text = "Lamentablemente, no se puede estar en el vehículo.", type = "error", layout = "centerLeft", timeout = 2000})
 		do return end
 	end
@@ -45,9 +51,9 @@ function placeChemicalLab(propLab)
 	RequestModel(object.prop)
 	while not HasModelLoaded(object.prop) do
 	    Citizen.Wait(1)
-    end
+    	end
 		
-    ESX.Game.SpawnObject(object.prop, {x = x, y = y, z = z}, function(obj)
+    	ESX.Game.SpawnObject(object.prop, {x = x, y = y, z = z}, function(obj)
 		SetEntityHeading(obj, GetEntityHeading(playerPed))
 		PlaceObjectOnGroundProperly(obj)
 		FreezeEntityPosition(obj, true)
@@ -55,13 +61,13 @@ function placeChemicalLab(propLab)
 
 	Wait(100)
 
-    local container =  GetClosestObjectOfType(x, y, z, 1.0, object.prop, false, true, true)
+    	local container =  GetClosestObjectOfType(x, y, z, 1.0, object.prop, false, true, true)
 
-    for i=1, #chemicalPureItems do
-        table.insert(chemicals, {item = container, elements = chemicalPureItems[i].element, value = chemicalPureItems[i].value, symbol = chemicalPureItems[i].chemicalSymbol})
-    end
+    	for i=1, #chemicalPureItems do
+        	table.insert(chemicals, {item = container, elements = chemicalPureItems[i].element, value = chemicalPureItems[i].value, symbol = chemicalPureItems[i].chemicalSymbol})
+    	end
 
-    writeChemical(container, object.name)
+    	writeChemical(container, object.name)
 end
 
 function LoadAnimDict(dict)
@@ -77,8 +83,8 @@ end
 
 function writeChemical(container, nombre)
 	local crecimiento = 0
-    local text = ''
-    local texto
+  	local text = ''
+    	local texto
 	local flag = false
 
     for k, v in pairs(chemicals) do
@@ -93,35 +99,34 @@ function writeChemical(container, nombre)
 
 		local player = PlayerPedId()
 		local playercoords = GetEntityCoords(player)
-        local recipientecoords = GetEntityCoords(container)
-        local x, y, z = table.unpack(recipientecoords)
+        	local recipientecoords = GetEntityCoords(container)
+        	local x, y, z = table.unpack(recipientecoords)
 		local recipientecoords = vector3(x,y,z+0.7)
 		local maxdistance = 5
-        local distance = #(playercoords - recipientecoords)
+        	local distance = #(playercoords - recipientecoords)
         
 		if crecimiento < 100 then
 
 			if flag then
-				crecimiento = crecimiento + 0.1
+				crecimiento = crecimiento + 0.01
 			end
 
 			if distance < 5 then
-                texto = nombre .. '~r~ ' .. crecimiento .. '%\n'
+                		texto = nombre .. '~r~ ' .. crecimiento .. '%\n'
 
-                for i=1, #textOutput do				    
-                    if chemicals[i].value >= 1 then
+                		for i=1, #textOutput do				    
+                   			if chemicals[i].value >= 1 then
 						flag = true
-                        texto = texto .. textOutput[i]
-                    end
-                end
-
+                        			texto = texto .. textOutput[i]
+                    			end
+                		end
 				ESX.Game.Utils.DrawText3D(recipientecoords, texto, 0.5, 4)
 			end
-		elseif crecimiento >= 100 then
-			if distance < 5 then
-				local texto2 = '~g~ [E] ~w~Para ~r~recoger ~w~' .. nombre
-				ESX.Game.Utils.DrawText3D(recipientecoords, texto2, 0.5, 4)
-			end
+			elseif crecimiento >= 100 then
+				if distance < 5 then
+					local texto2 = '~g~ [E] ~w~Para ~r~recoger ~w~' .. nombre
+					ESX.Game.Utils.DrawText3D(recipientecoords, texto2, 0.5, 4)
+				end
 
 			if distance < 2 then
 				if IsControlPressed(0, 38) then
@@ -133,8 +138,8 @@ function writeChemical(container, nombre)
 						TaskPlayAnim(PlayerPedId(), 'anim@heists@narcotics@funding@gang_idle', 'gang_chatting_idle01', 8.0, 8.0, -1, 33, 0, 0, 0, 0)
 						FreezeEntityPosition(PlayerPedId(), true)
 						exportsProgressBars("Obteniendo el componente quimico...", 10000)
-                		Wait(10000)
-               			ClearPedTasks(PlayerPedId())
+                				Wait(10000)
+               					ClearPedTasks(PlayerPedId())
 						FreezeEntityPosition(PlayerPedId(), false)
 					end
 					
@@ -160,47 +165,78 @@ function writeChemical(container, nombre)
 	end		
 end
 
-local chemicalsReceived = {}
-local chemicalsOrderReceived = {}
+local centrifugedChemicals = {}
+local centrifugedChemicalsOrdered = {}
 function checkRecipe(chemicals)
+	centrifugedChemicals = {}
+	centrifugedChemicalsOrdered = {}
+	local resultCompound = ''
 
 	for k, v in pairs(chemicals) do
-		table.insert(chemicalsReceived, v.symbol)
-
+		table.insert(centrifugedChemicals, v.symbol)
 		if string.len(v.symbol) ~= 1 then 
-			table.insert(chemicalsOrderReceived, string.byte(v.symbol) + 0.1)
+			table.insert(centrifugedChemicalsOrdered, string.byte(v.symbol) + 0.1)
 		else
-			table.insert(chemicalsOrderReceived, string.byte(v.symbol))
+			table.insert(centrifugedChemicalsOrdered, string.byte(v.symbol))
 		end
-		
 	end
 
-	table.sort(chemicalsOrderReceived)
+	table.sort(centrifugedChemicalsOrdered)
 
-	for clave, valor in pairs(chemicalCompoundItems) do
-		--print(chemicalsOrderReceived[1], chemicalsOrderReceived[2],"-", valor.components[1], valor.components[2])
-		local encaja = true
+	local encaja = false
+	local notEnoughQuantity = false
+	local finalQuantity = 1
+	local expQuantity = 1
+	for key, value in pairs(chemicalCompoundItems) do
+		if #centrifugedChemicalsOrdered == #value.components then
+			if #centrifugedChemicalsOrdered == 2 then
+				if centrifugedChemicalsOrdered[1] == value.components[1] and centrifugedChemicalsOrdered[2] == value.components[2] then
+					encaja = true
+					resultCompound = value.compound
 
-		if #chemicalsOrderReceived == #valor.components then
-			local final = true
-			local cont = 1
-			while final do
-				if chemicalsOrderReceived[cont] ~= valor.components[cont] then
-					final = false
-					encaja = false
+					if chemicals[1].value >= 99 and chemicals[2].value >= 99 then
+						finalQuantity = 4
+						expQuantity = 4
+					elseif chemicals[1].value >= 85 and chemicals[2].value >= 85 and chemicals[1].value < 99 and chemicals[2].value < 99 then
+						finalQuantity = 3
+						expQuantity = 2
+					elseif chemicals[1].value < 50 or chemicals[2].value < 50
+						notEnoughQuantity = true
+					end
+				end			
+			elseif #centrifugedChemicalsOrdered == 3 then
+				if centrifugedChemicalsOrdered[1] == value.components[1] and centrifugedChemicalsOrdered[2] == value.components[2] and centrifugedChemicalsOrdered[3] == value.components[3] then
+					encaja = true
+					resultCompound = value.compound
+
+					if chemicals[1].value >= 99 and chemicals[2].value >= 99 then
+						finalQuantity = 4
+						expQuantity = 6
+					elseif chemicals[1].value >= 85 and chemicals[2].value >= 85 and chemicals[3].value >= 85 and chemicals[1].value < 99 and chemicals[2].value < 99 and chemicals[3].value < 99 then
+						finalQuantity = 3
+						expQuantity = 3
+					elseif chemicals[1].value < 50 or chemicals[2].value < 50 or 
+						notEnoughQuantity = true
+					end
 				end
-				cont = cont + 1
-				if #chemicalsOrderReceived < cont then final = false end
 			end
-		else
-			encaja = false
 		end
+	end
 
-		if encaja then
-			print("es esta mezcla")
-		else
-			print("necesito ")
+	if encaja then
+		if not fallo and not notEnoughQuantity then		
+			TriggerServerEvent('io_chemicals:addItem', resultCompound, finalQuantity)
+			TriggerServerEvent('io_chemicals:addChemicalLvl', "source", expQuantity)
+		elseif notEnoughQuantity then
+			exports.pNotify:SendNotification({text = "Has introducido pocos materiales y la mezcla no se ha podido sintentizar", type = "error", timeout = 4000, layout = "centerLeft"})
+			TriggerServerEvent('io_chemicals:addChemicalLvl', "source", 0.5)
+		else 
+			exports.pNotify:SendNotification({text = "Te has pasado y el resultado es inútil", type = "error", timeout = 4000, layout = "centerLeft"})
+			TriggerServerEvent('io_chemicals:addChemicalLvl', "source", 0.5)
 		end
+	else
+		exports.pNotify:SendNotification({text = "La mezcla ha fallado", type = "error", timeout = 4000, layout = "centerLeft"})
+		TriggerServerEvent('io_chemicals:addChemicalLvl', "source", 0.5)
 	end
 end
 
@@ -264,15 +300,15 @@ AddEventHandler('io_chemicals:addPureElement', function(element)
 	local forward   = GetEntityForwardVector(PlayerPedId())
 	local x, y, z   = table.unpack(coords + forward * 1.0)
     ESX.TriggerServerCallback('io_chemicals:getSkillChemicals', function(chemical)
-        if chemical > 0 and chemical < 20 then
-            cantidad = math.random(17, 38)
-		elseif chemical > 20 and chemical <= 60 then
-			cantidad = math.random(17, 32)
-		elseif chemical > 60 and chemical <= 90 then
-			cantidad = math.random(17, 28)
-		elseif chemical > 90 then
-			cantidad = 25
-		end
+        if chemical > 0 and chemical <= 20 then
+         	cantidad = math.random(17,42)
+	elseif chemical > 20 and chemical <= 60 then
+		cantidad = math.random(17, 39)
+	elseif chemical > 60 and chemical <= 90 then
+		cantidad = math.random(17, 36)
+	elseif chemical > 90 then
+		cantidad = 33
+	end
 
         for propsLab in pairs(options) do
             local objetoquimico = GetClosestObjectOfType(x, y, z, 1.0, GetHashKey(propsLab), false, true, true)
@@ -281,29 +317,28 @@ AddEventHandler('io_chemicals:addPureElement', function(element)
         for k, v in pairs(chemicalPureItems) do
             if element == v.element then
                 if v.chemicalSymbol == chemicals[k].symbol then
-					chemicals[k].value = chemicals[k].value + cantidad
-					addArrayPure(v.element, v.chemicalSymbol, chemicals[k].value)
-				end
+			chemicals[k].value = chemicals[k].value + cantidad
+			addArrayPure(v.element, v.chemicalSymbol, chemicals[k].value)
+		end
             end
         end
     end)
 end)
 
---[[
 RegisterNetEvent('io_chemicals:addCompound')
 AddEventHandler('io_chemicals:addCompound', function(compound)
     local coords    = GetEntityCoords(PlayerPedId())
 	local forward   = GetEntityForwardVector(PlayerPedId())
 	local x, y, z   = table.unpack(coords + forward * 1.0)
     ESX.TriggerServerCallback('io_chemicals:getSkillChemicals', function(chemical)
-        if chemical <= 10 then
-			cantidad = math.random(17, 38)
+        if chemical > 0 and chemical <= 20 then
+            cantidad = math.random(17,42)
 		elseif chemical > 20 and chemical <= 60 then
-			cantidad = math.random(17, 32)
+			cantidad = math.random(17, 39)
 		elseif chemical > 60 and chemical <= 90 then
-			cantidad = math.random(17, 28)
+			cantidad = math.random(17, 36)
 		elseif chemical > 90 then
-			cantidad = 25
+			cantidad = 33
 		end
 
         for propsLab in pairs(options) do
@@ -314,4 +349,3 @@ AddEventHandler('io_chemicals:addCompound', function(compound)
         end
     end)
 end)
-]]
